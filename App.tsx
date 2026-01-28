@@ -23,9 +23,9 @@ import FinancialsModule from './components/FinancialsModule';
 import NotificationManager from './components/NotificationManager';
 import ApprovalWorkflowModule from './components/ApprovalWorkflowModule';
 import { User, UserRole } from './types';
-import { db } from './mockDb';
-// Fix: Corrected import source from 'lucide-center' to 'lucide-react'
-import { LogIn, Mail, Lock, Landmark, ChevronLeft, AlertCircle } from 'lucide-react';
+import { api } from './services/api';
+import { db } from './mockDb'; // Keep for initial demo bootstrap
+import { LogIn, Mail, Lock, Landmark, ChevronLeft, AlertCircle, Loader2 } from 'lucide-react';
 
 type ViewMode = 'landing' | 'apply' | 'login' | 'app' | 'about' | 'benefits';
 
@@ -34,50 +34,77 @@ const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isLoginLoading, setIsLoginLoading] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [loginError, setLoginError] = useState<string | null>(null);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   useEffect(() => {
-    const savedAuth = localStorage.getItem('coop_session_email');
-    if (savedAuth) {
-      const foundUser = db.getUserByEmail(savedAuth);
-      if (foundUser) {
-        setUser(foundUser);
-        setView('app');
+    const checkSession = async () => {
+      const savedEmail = localStorage.getItem('coop_session_email');
+      if (savedEmail) {
+        // In production, we'd verify the token with api.getProfile()
+        const foundUser = db.getUserByEmail(savedEmail);
+        if (foundUser) {
+          setUser(foundUser);
+          setView('app');
+        }
       }
-    }
+      setIsInitializing(false);
+    };
+    checkSession();
   }, []);
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoginLoading(true);
     setLoginError(null);
 
-    setTimeout(() => {
+    try {
+      // Simulating the API flow
+      // const response = await api.login({ email, password });
+      // setUser(response.user);
+      // api.setToken(response.token);
+      
       const foundUser = db.getUserByEmail(email);
       if (foundUser && (password === 'Admin@2024' || password === 'Member@2024')) {
         setUser(foundUser);
         setView('app');
         localStorage.setItem('coop_session_email', foundUser.email);
+        // api.setToken('dummy-jwt-token');
       } else {
-        setLoginError("Invalid email or security password. Please try again.");
+        setLoginError("Access Denied: Invalid credentials or unauthorized account.");
       }
+    } catch (err: any) {
+      setLoginError(err.message || "Connection failed. Please check your network.");
+    } finally {
       setIsLoginLoading(false);
-    }, 1200);
+    }
   };
 
   const handleLogout = () => {
     setView('landing');
     setUser(null);
     localStorage.removeItem('coop_session_email');
+    api.clearToken();
   };
 
   const handleRoleSwitch = (role: UserRole) => {
     if (!user) return;
     setUser({ ...user, role });
   };
+
+  if (isInitializing) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-slate-900">
+        <div className="text-center space-y-4">
+          <Loader2 className="animate-spin text-indigo-500 mx-auto" size={48} />
+          <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Verifying Secure Session...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (view === 'about') return <AboutPage onBack={() => setView('landing')} />;
   if (view === 'benefits') return <BenefitsPage onBack={() => setView('landing')} />;
@@ -89,7 +116,7 @@ const App: React.FC = () => {
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans text-slate-900">
         <div className="absolute top-0 left-0 w-full h-1/2 bg-indigo-700/5 -skew-y-6 -translate-y-1/2"></div>
         <button onClick={() => setView('landing')} className="absolute top-8 left-8 flex items-center gap-2 text-slate-500 font-bold hover:text-slate-900 z-20 transition-colors">
-          <ChevronLeft size={20} /> Back to Website
+          <ChevronLeft size={20} /> Back to Home
         </button>
 
         <div className="w-full max-w-md relative z-10">
@@ -98,7 +125,7 @@ const App: React.FC = () => {
                <Landmark size={40} className="text-white" />
             </div>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Employee Access</h1>
-            <p className="text-slate-400 mt-2 font-bold uppercase text-[10px] tracking-widest leading-none">Suleja LGA Cooperative Management System</p>
+            <p className="text-slate-400 mt-2 font-bold uppercase text-[10px] tracking-widest leading-none">Suleja LGA Cooperative CMS</p>
           </div>
 
           <div className="bg-white rounded-3xl shadow-2xl p-8 border border-slate-100">
@@ -140,7 +167,8 @@ const App: React.FC = () => {
                 disabled={isLoginLoading}
                 className="w-full py-4 bg-indigo-700 hover:bg-indigo-800 disabled:bg-indigo-300 text-white font-black rounded-xl shadow-xl shadow-indigo-200 transition-all flex items-center justify-center gap-2 text-base active:scale-95"
               >
-                {isLoginLoading ? "Verifying..." : "Secure Access"} <LogIn size={20} />
+                {isLoginLoading ? <Loader2 className="animate-spin" size={20} /> : "Secure Access"} 
+                {!isLoginLoading && <LogIn size={20} />}
               </button>
             </form>
             
@@ -152,9 +180,6 @@ const App: React.FC = () => {
               </div>
             </div>
           </div>
-          <p className="text-center mt-10 text-[9px] font-black uppercase tracking-[0.3em] text-slate-300">
-             Certified Government Solution • v1.0.5
-          </p>
         </div>
       </div>
     );

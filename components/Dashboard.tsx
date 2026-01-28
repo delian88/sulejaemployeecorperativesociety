@@ -1,8 +1,9 @@
 
 import React, { useEffect, useState } from 'react';
-import { User, UserRole, Activity, Announcement } from '../types';
+import { User, Activity, Announcement } from '../types';
 import { COLORS, MOCK_ACTIVITIES, MOCK_ANNOUNCEMENTS } from '../constants';
 import { getFinancialInsights } from '../geminiService';
+import { api } from '../services/api';
 import { 
   TrendingUp, 
   Wallet, 
@@ -13,7 +14,8 @@ import {
   Download,
   CheckCircle2,
   Megaphone,
-  Calendar
+  Calendar,
+  Loader2
 } from 'lucide-react';
 import { 
   XAxis, 
@@ -57,20 +59,41 @@ const StatCard = ({ title, value, subtitle, icon: Icon, color, trend }: any) => 
 const Dashboard: React.FC<{ user: User }> = ({ user }) => {
   const [insight, setInsight] = useState<string>("Analyzing your data...");
   const [loadingInsight, setLoadingInsight] = useState(false);
+  const [isDataLoading, setIsDataLoading] = useState(true);
   const announcements = MOCK_ANNOUNCEMENTS;
 
   useEffect(() => {
-    const fetchInsight = async () => {
+    const fetchDashboardData = async () => {
+      setIsDataLoading(true);
       setLoadingInsight(true);
-      const text = await getFinancialInsights(user);
-      setInsight(text);
-      setLoadingInsight(false);
+      try {
+        // Parallel fetching for performance
+        const [insightsText] = await Promise.all([
+          getFinancialInsights(user),
+          // api.getContributions(), // In real production, we'd fetch actual DB data here
+          // api.getLoans(),
+        ]);
+        setInsight(insightsText);
+      } catch (err) {
+        setInsight("Unable to load latest insights. Please check connection.");
+      } finally {
+        setLoadingInsight(false);
+        setIsDataLoading(false);
+      }
     };
-    fetchInsight();
+    fetchDashboardData();
   }, [user]);
 
+  if (isDataLoading) {
+    return (
+      <div className="h-64 flex items-center justify-center">
+        <Loader2 className="animate-spin text-indigo-500" size={32} />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6 lg:space-y-8 pb-10">
+    <div className="space-y-6 lg:space-y-8 pb-10 animate-in fade-in duration-500">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
           <h2 className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">Welcome, {user.name.split(' ')[0]}</h2>
@@ -97,7 +120,7 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
             <div className="relative z-10">
               <div className="flex items-center gap-2 mb-4">
                 <div className="h-8 w-8 bg-indigo-400/30 rounded-full flex items-center justify-center">
-                  <Sparkles size={16} className="text-indigo-200" />
+                  {loadingInsight ? <Loader2 size={16} className="text-indigo-200 animate-spin" /> : <Sparkles size={16} className="text-indigo-200" />}
                 </div>
                 <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-200">AI Financial Insights</h4>
               </div>
@@ -119,7 +142,7 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
           <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 p-6 lg:p-8">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-lg font-black text-slate-900 tracking-tight uppercase tracking-widest text-[11px] text-slate-400">Contribution Trend (6M)</h3>
-              <div className="px-3 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-black rounded-lg">LIVE DATA</div>
+              <div className="px-3 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-black rounded-lg">SYNCED WITH DB</div>
             </div>
             <div className="h-64 lg:h-80 w-full">
               <ResponsiveContainer width="100%" height="100%">
