@@ -24,7 +24,7 @@ import NotificationManager from './components/NotificationManager';
 import ApprovalWorkflowModule from './components/ApprovalWorkflowModule';
 import { User, UserRole } from './types';
 import { api } from './services/api';
-import { LogIn, Mail, Lock, Landmark, ChevronLeft, AlertCircle, Loader2 } from 'lucide-react';
+import { LogIn, Mail, Lock, Landmark, ChevronLeft, AlertCircle, Loader2, Info } from 'lucide-react';
 
 type ViewMode = 'landing' | 'apply' | 'login' | 'app' | 'about' | 'benefits';
 
@@ -45,12 +45,15 @@ const App: React.FC = () => {
       const token = localStorage.getItem('coop_auth_token');
       
       if (savedEmail && token) {
-        // In production, we'd verify the token with api.getProfile()
-        const members = await api.getMembers();
-        const foundUser = members.find(u => u.email === savedEmail);
-        if (foundUser) {
-          setUser(foundUser);
-          setView('app');
+        try {
+          const members = await api.getMembers();
+          const foundUser = members.find(u => u.email === savedEmail);
+          if (foundUser) {
+            setUser(foundUser);
+            setView('app');
+          }
+        } catch (e) {
+          console.error("Session recovery failed");
         }
       }
       setIsInitializing(false);
@@ -64,7 +67,6 @@ const App: React.FC = () => {
     setLoginError(null);
 
     try {
-      // Calling our abstracted API service
       const response = await api.login({ email, password });
       setUser(response.user);
       localStorage.setItem('coop_session_email', response.user.email);
@@ -165,10 +167,30 @@ const App: React.FC = () => {
               </button>
             </form>
             
-            <div className="mt-8 p-4 bg-amber-50 rounded-2xl border border-amber-100 text-center">
-              <p className="text-[10px] text-amber-600 font-bold uppercase mb-1">Production Access Required</p>
-              <div className="flex flex-col gap-1">
-                <p className="text-[9px] text-slate-500 font-medium italic">Use the specific Admin@2024 or Member@2024 PINs</p>
+            <div className="mt-8 p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100/50">
+              <div className="flex items-center gap-2 mb-3 text-indigo-700">
+                <Info size={16} />
+                <p className="text-[10px] font-black uppercase tracking-widest">Test Credentials</p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex flex-col text-left">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase leading-none mb-1">Administrator</span>
+                  <button 
+                    onClick={() => { setEmail('admin@sulejalga.gov.ng'); setPassword('Admin@2024'); }}
+                    className="text-[10px] font-black text-indigo-700 bg-white border border-indigo-100 py-1.5 px-3 rounded-lg hover:bg-indigo-100 transition-colors"
+                  >
+                    admin@sulejalga.gov.ng / Admin@2024
+                  </button>
+                </div>
+                <div className="flex flex-col text-left">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase leading-none mb-1">Member</span>
+                  <button 
+                    onClick={() => { setEmail('member@sulejalga.gov.ng'); setPassword('Member@2024'); }}
+                    className="text-[10px] font-black text-indigo-700 bg-white border border-indigo-100 py-1.5 px-3 rounded-lg hover:bg-indigo-100 transition-colors"
+                  >
+                    member@sulejalga.gov.ng / Member@2024
+                  </button>
+                </div>
               </div>
             </div>
           </div>
