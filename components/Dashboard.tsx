@@ -36,10 +36,10 @@ const data = [
   { name: 'Mar', amount: 50000 },
 ];
 
-const StatCard = ({ title, value, subtitle, icon: Icon, color, trend }: any) => (
-  <div className="bg-white p-5 lg:p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-indigo-100 transition-colors group">
+const StatCard = ({ title, value, subtitle, icon: Icon, color, trend, delayClass }: any) => (
+  <div className={`bg-white p-5 lg:p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-indigo-100 hover:shadow-xl transition-all duration-300 group opacity-0 animate-fade-in-up ${delayClass}`}>
     <div className="flex justify-between items-start">
-      <div className={`p-3 rounded-xl ${color} text-white shadow-lg shadow-indigo-100 group-hover:scale-105 transition-transform`}>
+      <div className={`p-3 rounded-xl ${color} text-white shadow-lg shadow-indigo-100 group-hover:scale-110 transition-transform`}>
         <Icon size={22} />
       </div>
       {trend && (
@@ -67,11 +67,8 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
       setIsDataLoading(true);
       setLoadingInsight(true);
       try {
-        // Parallel fetching for performance
         const [insightsText] = await Promise.all([
           getFinancialInsights(user),
-          // api.getContributions(), // In real production, we'd fetch actual DB data here
-          // api.getLoans(),
         ]);
         setInsight(insightsText);
       } catch (err) {
@@ -93,8 +90,8 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
   }
 
   return (
-    <div className="space-y-6 lg:space-y-8 pb-10 animate-in fade-in duration-500">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+    <div className="space-y-6 lg:space-y-8 pb-10">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 opacity-0 animate-fade-in-up">
         <div>
           <h2 className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">Welcome, {user.name.split(' ')[0]}</h2>
           <p className="text-slate-500 font-medium text-sm lg:text-base">Cooperative overview as of {new Date().toLocaleDateString('en-NG', { month: 'long', day: 'numeric', year: 'numeric' })}.</p>
@@ -113,7 +110,7 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
         {/* Main Stats Column */}
         <div className="lg:col-span-2 space-y-6 lg:space-y-8">
            {/* Financial Insights Card */}
-          <div className="bg-gradient-to-br from-indigo-700 via-indigo-800 to-slate-900 rounded-[2rem] p-6 lg:p-10 text-white shadow-2xl relative overflow-hidden group">
+          <div className="bg-gradient-to-br from-indigo-700 via-indigo-800 to-slate-900 rounded-[2rem] p-6 lg:p-10 text-white shadow-2xl relative overflow-hidden group opacity-0 animate-scale-in stagger-1">
             <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-125 transition-transform duration-1000">
                <Sparkles size={160} />
             </div>
@@ -135,11 +132,11 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8">
-            <StatCard title="Total Contributions" value={user.totalContributions} subtitle="Lifetime accrued savings" icon={Wallet} color="bg-indigo-600" trend={4.2} />
-            <StatCard title="Outstanding Loans" value={user.activeLoanBalance} subtitle="Pending debt balance" icon={HandCoins} color="bg-slate-800" trend={-1.5} />
+            <StatCard title="Total Contributions" value={user.totalContributions} subtitle="Lifetime accrued savings" icon={Wallet} color="bg-indigo-600" trend={4.2} delayClass="stagger-2" />
+            <StatCard title="Outstanding Loans" value={user.activeLoanBalance} subtitle="Pending debt balance" icon={HandCoins} color="bg-slate-800" trend={-1.5} delayClass="stagger-3" />
           </div>
 
-          <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 p-6 lg:p-8">
+          <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 p-6 lg:p-8 opacity-0 animate-fade-in-up stagger-4">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-lg font-black text-slate-900 tracking-tight uppercase tracking-widest text-[11px] text-slate-400">Contribution Trend (6M)</h3>
               <div className="px-3 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-black rounded-lg">SYNCED WITH DB</div>
@@ -170,21 +167,21 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
         {/* Side Panel: Notice Board & Activity */}
         <div className="space-y-6 lg:space-y-8">
            {/* Notice Board */}
-          <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
+          <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden opacity-0 animate-slide-in-left stagger-2">
             <div className="bg-[#0f172a] px-6 lg:px-8 py-5 flex items-center justify-between">
               <div className="flex items-center gap-3 text-white">
-                <div className="p-2 bg-indigo-600 rounded-lg">
+                <div className="p-2 bg-indigo-600 rounded-lg animate-pulse">
                   <Megaphone size={16} />
                 </div>
                 <h3 className="font-black text-xs uppercase tracking-[0.15em]">Notice Board</h3>
               </div>
             </div>
             <div className="p-6 lg:p-8 space-y-8">
-              {announcements.map((ann) => (
-                <div key={ann.id} className="relative pl-6 border-l-2 border-slate-100 group">
+              {announcements.map((ann, idx) => (
+                <div key={ann.id} className={`relative pl-6 border-l-2 border-slate-100 group transition-all duration-300 hover:translate-x-1 stagger-${idx+1}`}>
                   <div className={`absolute -left-[5px] top-0 h-2 w-2 rounded-full ${ann.priority === 'URGENT' ? 'bg-red-500 animate-ping' : 'bg-indigo-400'}`}></div>
                   <div className="flex flex-col gap-2">
-                    <h4 className={`text-sm font-black tracking-tight leading-tight ${ann.priority === 'URGENT' ? 'text-red-600' : 'text-slate-800'}`}>{ann.title}</h4>
+                    <h4 className={`text-sm font-black tracking-tight leading-tight group-hover:text-indigo-600 transition-colors ${ann.priority === 'URGENT' ? 'text-red-600' : 'text-slate-800'}`}>{ann.title}</h4>
                     <p className="text-xs text-slate-500 leading-relaxed font-medium">{ann.content}</p>
                     <div className="flex items-center gap-2 text-[10px] text-slate-400 font-black uppercase tracking-widest pt-1">
                       <Calendar size={12} /> {new Date(ann.date).toLocaleDateString()}
@@ -195,20 +192,20 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
             </div>
           </div>
 
-          <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 p-6 lg:p-8">
+          <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 p-6 lg:p-8 opacity-0 animate-slide-in-left stagger-4">
             <h3 className="text-[11px] font-black text-slate-400 mb-6 uppercase tracking-[0.2em] flex items-center gap-2">
               <Clock size={16} className="text-indigo-500" /> Recent History
             </h3>
             <div className="space-y-6">
-              {MOCK_ACTIVITIES.map((activity) => (
-                <div key={activity.id} className="flex gap-4 group">
+              {MOCK_ACTIVITIES.map((activity, idx) => (
+                <div key={activity.id} className={`flex gap-4 group transition-all duration-300 hover:translate-x-2 stagger-${idx+1}`}>
                   <div className={`shrink-0 h-10 w-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ${
                     activity.type === 'CONTRIBUTION' ? 'bg-emerald-50 text-emerald-600' : 'bg-sky-50 text-sky-600'
                   }`}>
                     {activity.type === 'CONTRIBUTION' ? <Wallet size={18} /> : <HandCoins size={18} />}
                   </div>
                   <div className="flex-1 border-b border-slate-50 pb-4">
-                    <p className="text-sm font-bold text-slate-800 leading-none">{activity.description}</p>
+                    <p className="text-sm font-bold text-slate-800 leading-none group-hover:text-indigo-600 transition-colors">{activity.description}</p>
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{activity.timestamp}</span>
                       <span className="text-xs font-black text-slate-900">₦{activity.amount?.toLocaleString()}</span>
@@ -217,7 +214,7 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
                 </div>
               ))}
             </div>
-            <button className="w-full mt-6 py-3 border border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-colors">
+            <button className="w-full mt-6 py-3 border border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-slate-50 hover:text-indigo-600 transition-all active:scale-95">
               View Full History
             </button>
           </div>

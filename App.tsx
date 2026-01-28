@@ -73,8 +73,11 @@ const AppContent: React.FC = () => {
       const response = await api.login({ email, password });
       setUser(response.user);
       localStorage.setItem('coop_session_email', response.user.email);
-      setView('app');
-      showToast("Access Granted: Secure session initialized", "success");
+      // Artificial delay for smooth transition feel
+      setTimeout(() => {
+        setView('app');
+        showToast("Access Granted: Secure session initialized", "success");
+      }, 400);
     } catch (err: any) {
       const msg = err.message || "Connection failed. Access denied.";
       setLoginError(msg);
@@ -92,16 +95,10 @@ const AppContent: React.FC = () => {
     showToast("Session terminated successfully", "info");
   };
 
-  const handleRoleSwitch = (role: UserRole) => {
-    if (!user) return;
-    setUser({ ...user, role });
-    showToast(`Environment switched to ${role.replace('_', ' ')} view`, "info");
-  };
-
   if (isInitializing) {
     return (
       <div className="h-screen w-full flex items-center justify-center bg-[#0f172a]">
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-4 animate-scale-in">
           <Loader2 className="animate-spin text-indigo-500 mx-auto" size={48} />
           <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Verifying Security Protocols...</p>
         </div>
@@ -109,109 +106,124 @@ const AppContent: React.FC = () => {
     );
   }
 
-  if (view === 'about') return <AboutPage onBack={() => setView('landing')} />;
-  if (view === 'benefits') return <BenefitsPage onBack={() => setView('landing')} />;
-  if (view === 'apply') return <MembershipForm onBack={() => setView('landing')} onSubmit={() => {}} />;
-  if (view === 'landing') return <LandingPage onLogin={() => setView('login')} onApply={() => setView('apply')} onNav={setView} />;
+  // View Transition Wrapper
+  const renderView = () => {
+    switch (view) {
+      case 'about': return <div className="animate-fade-in-up"><AboutPage onBack={() => setView('landing')} /></div>;
+      case 'benefits': return <div className="animate-fade-in-up"><BenefitsPage onBack={() => setView('landing')} /></div>;
+      case 'apply': return <div className="animate-fade-in-up"><MembershipForm onBack={() => setView('landing')} onSubmit={() => {}} /></div>;
+      case 'landing': return <div className="animate-fade-in-up"><LandingPage onLogin={() => setView('login')} onApply={() => setView('apply')} onNav={setView} /></div>;
+      case 'login': return (
+        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans text-slate-900 animate-fade-in-up">
+          <div className="absolute top-0 left-0 w-full h-1/2 bg-indigo-700/5 -skew-y-6 -translate-y-1/2 animate-pulse duration-[8000ms]"></div>
+          <button onClick={() => setView('landing')} className="absolute top-8 left-8 flex items-center gap-2 text-slate-500 font-bold hover:text-slate-900 z-20 transition-all hover:-translate-x-1">
+            <ChevronLeft size={20} /> Back to Website
+          </button>
 
-  if (view === 'login') {
-    return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans text-slate-900">
-        <div className="absolute top-0 left-0 w-full h-1/2 bg-indigo-700/5 -skew-y-6 -translate-y-1/2"></div>
-        <button onClick={() => setView('landing')} className="absolute top-8 left-8 flex items-center gap-2 text-slate-500 font-bold hover:text-slate-900 z-20 transition-colors">
-          <ChevronLeft size={20} /> Back to Website
-        </button>
-
-        <div className="w-full max-w-md relative z-10">
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-indigo-700 rounded-2xl shadow-xl shadow-indigo-100 mb-6 transform hover:rotate-6 transition-transform">
-               <Landmark size={40} className="text-white" />
+          <div className="w-full max-w-md relative z-10 animate-scale-in">
+            <div className="text-center mb-10">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-indigo-700 rounded-2xl shadow-xl shadow-indigo-100 mb-6 transform hover:rotate-6 transition-transform">
+                 <Landmark size={40} className="text-white" />
+              </div>
+              <h1 className="text-3xl font-black text-slate-900 tracking-tight">Portal Entry</h1>
+              <p className="text-slate-400 mt-2 font-bold uppercase text-[10px] tracking-widest leading-none">Suleja LGA Cooperative Management System</p>
             </div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Portal Entry</h1>
-            <p className="text-slate-400 mt-2 font-bold uppercase text-[10px] tracking-widest leading-none">Suleja LGA Cooperative Management System</p>
-          </div>
 
-          <div className="bg-white rounded-3xl shadow-2xl p-8 border border-slate-100">
-            <form onSubmit={handleLoginSubmit} className="space-y-6">
-              {loginError && (
-                <div className="p-4 bg-rose-50 border border-rose-100 rounded-xl flex items-center gap-3 text-rose-600 text-sm font-bold animate-shake">
-                  <AlertCircle size={18} /> {loginError}
+            <div className="bg-white rounded-3xl shadow-2xl p-8 border border-slate-100">
+              <form onSubmit={handleLoginSubmit} className="space-y-6">
+                {loginError && (
+                  <div className="p-4 bg-rose-50 border border-rose-100 rounded-xl flex items-center gap-3 text-rose-600 text-sm font-bold animate-shake">
+                    <AlertCircle size={18} /> {loginError}
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Work Email</label>
+                  <div className="relative group">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                    <input 
+                      type="email" required placeholder="name@sulejalga.gov.ng"
+                      className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white outline-none transition-all font-medium text-slate-800"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
                 </div>
-              )}
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Security PIN / Password</label>
+                  <div className="relative group">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                    <input 
+                      type="password" required placeholder="••••••••"
+                      className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white outline-none transition-all font-medium text-slate-800"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <button 
+                  type="submit" 
+                  disabled={isLoginLoading}
+                  className="w-full py-4 bg-indigo-700 hover:bg-indigo-800 disabled:bg-indigo-300 text-white font-black rounded-xl shadow-xl shadow-indigo-200 transition-all flex items-center justify-center gap-2 text-base hover:scale-105 active:scale-95"
+                >
+                  {isLoginLoading ? <Loader2 className="animate-spin" size={20} /> : "Validate & Access"} 
+                  {!isLoginLoading && <LogIn size={20} />}
+                </button>
+              </form>
               
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Work Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                  <input 
-                    type="email" required placeholder="name@sulejalga.gov.ng"
-                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-medium text-slate-800"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
+              <div className="mt-8 p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100/50 animate-pulse-slow">
+                <div className="flex items-center gap-2 mb-3 text-indigo-700">
+                  <Info size={16} />
+                  <p className="text-[10px] font-black uppercase tracking-widest">Test Credentials</p>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Security PIN / Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                  <input 
-                    type="password" required placeholder="••••••••"
-                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-medium text-slate-800"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <button 
-                type="submit" 
-                disabled={isLoginLoading}
-                className="w-full py-4 bg-indigo-700 hover:bg-indigo-800 disabled:bg-indigo-300 text-white font-black rounded-xl shadow-xl shadow-indigo-200 transition-all flex items-center justify-center gap-2 text-base active:scale-95"
-              >
-                {isLoginLoading ? <Loader2 className="animate-spin" size={20} /> : "Validate & Access"} 
-                {!isLoginLoading && <LogIn size={20} />}
-              </button>
-            </form>
-            
-            <div className="mt-8 p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100/50">
-              <div className="flex items-center gap-2 mb-3 text-indigo-700">
-                <Info size={16} />
-                <p className="text-[10px] font-black uppercase tracking-widest">Test Credentials</p>
-              </div>
-              <div className="space-y-2">
-                <div className="flex flex-col text-left">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase leading-none mb-1">Administrator</span>
-                  <button 
-                    onClick={() => { setEmail('admin@sulejalga.gov.ng'); setPassword('Admin@2024'); }}
-                    className="text-[10px] font-black text-indigo-700 bg-white border border-indigo-100 py-1.5 px-3 rounded-lg hover:bg-indigo-100 transition-colors"
-                  >
-                    admin@sulejalga.gov.ng / Admin@2024
-                  </button>
-                </div>
-                <div className="flex flex-col text-left">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase leading-none mb-1">Member</span>
-                  <button 
-                    onClick={() => { setEmail('member@sulejalga.gov.ng'); setPassword('Member@2024'); }}
-                    className="text-[10px] font-black text-indigo-700 bg-white border border-indigo-100 py-1.5 px-3 rounded-lg hover:bg-indigo-100 transition-colors"
-                  >
-                    member@sulejalga.gov.ng / Member@2024
-                  </button>
+                <div className="space-y-2">
+                  <div className="flex flex-col text-left">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase leading-none mb-1">Administrator</span>
+                    <button 
+                      onClick={() => { setEmail('admin@sulejalga.gov.ng'); setPassword('Admin@2024'); }}
+                      className="text-[10px] font-black text-indigo-700 bg-white border border-indigo-100 py-1.5 px-3 rounded-lg hover:bg-indigo-100 transition-all active:scale-95 text-left"
+                    >
+                      admin@sulejalga.gov.ng / Admin@2024
+                    </button>
+                  </div>
+                  <div className="flex flex-col text-left">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase leading-none mb-1">Member</span>
+                    <button 
+                      onClick={() => { setEmail('member@sulejalga.gov.ng'); setPassword('Member@2024'); }}
+                      className="text-[10px] font-black text-indigo-700 bg-white border border-indigo-100 py-1.5 px-3 rounded-lg hover:bg-indigo-100 transition-all active:scale-95 text-left"
+                    >
+                      member@sulejalga.gov.ng / Member@2024
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    );
-  }
+      );
+      case 'app':
+        if (!user) return null;
+        const isAdmin = user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN;
+        return (
+          <Layout 
+            user={user} 
+            activeTab={activeTab} 
+            setActiveTab={setActiveTab} 
+            onLogout={handleLogout}
+          >
+            <div className="animate-fade-in-up">
+              {renderTabContent(isAdmin, user, activeTab)}
+            </div>
+          </Layout>
+        );
+      default: return null;
+    }
+  };
 
-  const renderTabContent = () => {
-    if (!user) return null;
-    const isAdmin = user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN;
-
-    switch(activeTab) {
+  const renderTabContent = (isAdmin: boolean, user: User, tab: string) => {
+    switch(tab) {
       case 'dashboard': return isAdmin ? <AdminDashboard user={user} /> : <Dashboard user={user} />;
       case 'members': return <MemberManagement />;
       case 'contributions': return isAdmin ? <AdminContributionManagement /> : <PaymentModule />;
@@ -228,17 +240,7 @@ const AppContent: React.FC = () => {
     }
   };
 
-  return (
-    <Layout 
-      user={user!} 
-      activeTab={activeTab} 
-      setActiveTab={setActiveTab} 
-      onLogout={handleLogout} 
-      onRoleSwitch={handleRoleSwitch}
-    >
-      {renderTabContent()}
-    </Layout>
-  );
+  return renderView();
 };
 
 const App: React.FC = () => (

@@ -10,10 +10,9 @@ interface LayoutProps {
   setActiveTab: (tab: string) => void;
   children: React.ReactNode;
   onLogout: () => void;
-  onRoleSwitch: (role: UserRole) => void;
 }
 
-const Layout: React.FC<LayoutProps> = ({ user, activeTab, setActiveTab, children, onLogout, onRoleSwitch }) => {
+const Layout: React.FC<LayoutProps> = ({ user, activeTab, setActiveTab, children, onLogout }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
@@ -130,19 +129,6 @@ const Layout: React.FC<LayoutProps> = ({ user, activeTab, setActiveTab, children
           </div>
 
           <div className="flex items-center gap-2 lg:gap-4">
-            {/* Quick Role Switch for Demo */}
-            <div className="hidden xl:block">
-              <select 
-                value={user.role} 
-                onChange={(e) => onRoleSwitch(e.target.value as UserRole)}
-                className="bg-slate-100 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded border border-slate-200 text-slate-600 focus:outline-none"
-              >
-                <option value={UserRole.MEMBER}>Member</option>
-                <option value={UserRole.ADMIN}>Admin</option>
-                <option value={UserRole.SUPER_ADMIN}>Super Admin</option>
-              </select>
-            </div>
-
             <button className="p-2 relative hover:bg-slate-100 rounded-full transition-colors" aria-label="Notifications">
               <Bell size={20} className="text-slate-600" />
               <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-500 rounded-full border-2 border-white"></span>
