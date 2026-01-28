@@ -8,6 +8,7 @@ import MembershipForm from './components/MembershipForm';
 import MembershipReview from './components/MembershipReview';
 import PaymentModule from './components/PaymentModule';
 import ProfileModule from './components/ProfileModule';
+import WithdrawalModule from './components/WithdrawalModule';
 import { User, UserRole } from './types';
 import { MOCK_CURRENT_USER, MOCK_ADMIN_USER } from './constants';
 import { LogIn, ShieldCheck, Mail, Lock, Landmark, ChevronLeft } from 'lucide-react';
@@ -129,6 +130,7 @@ const App: React.FC = () => {
       case 'loans': return <LoanManagement user={user} />;
       case 'membership_review': return <MembershipReview />;
       case 'contributions': return <PaymentModule />;
+      case 'withdrawals': return <WithdrawalModule user={user} />;
       case 'profile': return <ProfileModule user={user} />;
       default: return (
         <div className="flex flex-col items-center justify-center h-full text-slate-400 py-20 bg-white rounded-3xl border border-dashed border-slate-200">
