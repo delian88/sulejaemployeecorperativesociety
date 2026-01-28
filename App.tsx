@@ -24,11 +24,13 @@ import NotificationManager from './components/NotificationManager';
 import ApprovalWorkflowModule from './components/ApprovalWorkflowModule';
 import { User, UserRole } from './types';
 import { api } from './services/api';
+import { ToastProvider, useToast } from './components/Toast';
 import { LogIn, Mail, Lock, Landmark, ChevronLeft, AlertCircle, Loader2, Info } from 'lucide-react';
 
 type ViewMode = 'landing' | 'apply' | 'login' | 'app' | 'about' | 'benefits';
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
+  const { showToast } = useToast();
   const [view, setView] = useState<ViewMode>('landing');
   const [user, setUser] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -51,6 +53,7 @@ const App: React.FC = () => {
           if (foundUser) {
             setUser(foundUser);
             setView('app');
+            showToast(`Welcome back, ${foundUser.name.split(' ')[0]}`, 'success');
           }
         } catch (e) {
           console.error("Session recovery failed");
@@ -71,8 +74,11 @@ const App: React.FC = () => {
       setUser(response.user);
       localStorage.setItem('coop_session_email', response.user.email);
       setView('app');
+      showToast("Access Granted: Secure session initialized", "success");
     } catch (err: any) {
-      setLoginError(err.message || "Connection failed. Access denied.");
+      const msg = err.message || "Connection failed. Access denied.";
+      setLoginError(msg);
+      showToast(msg, "error");
     } finally {
       setIsLoginLoading(false);
     }
@@ -83,11 +89,13 @@ const App: React.FC = () => {
     setUser(null);
     localStorage.removeItem('coop_session_email');
     api.clearToken();
+    showToast("Session terminated successfully", "info");
   };
 
   const handleRoleSwitch = (role: UserRole) => {
     if (!user) return;
     setUser({ ...user, role });
+    showToast(`Environment switched to ${role.replace('_', ' ')} view`, "info");
   };
 
   if (isInitializing) {
@@ -232,5 +240,11 @@ const App: React.FC = () => {
     </Layout>
   );
 };
+
+const App: React.FC = () => (
+  <ToastProvider>
+    <AppContent />
+  </ToastProvider>
+);
 
 export default App;

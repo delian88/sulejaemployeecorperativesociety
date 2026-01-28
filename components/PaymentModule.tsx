@@ -1,8 +1,10 @@
 
 import React, { useState } from 'react';
 import { CreditCard, Wallet, Calendar, AlertTriangle, CheckCircle } from 'lucide-react';
+import { useToast } from './Toast';
 
 const PaymentModule: React.FC = () => {
+  const { showToast } = useToast();
   const [amount, setAmount] = useState('10000');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -10,9 +12,11 @@ const PaymentModule: React.FC = () => {
   const handlePay = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    showToast("Processing secure transaction...", "loading");
     setTimeout(() => {
       setLoading(false);
       setSuccess(true);
+      showToast(`Contribution of ₦${parseInt(amount).toLocaleString()} confirmed`, "success");
     }, 2000);
   };
 

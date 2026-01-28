@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { LoanApplication, LoanStatus } from '../types';
 import { MOCK_LOANS } from '../constants';
+import { useToast } from './Toast';
 import { 
   FileText, 
   CheckCircle, 
@@ -15,12 +16,20 @@ import {
   UserX,
   Eye,
   ArrowRight,
-  // Fix: Added missing HandCoins icon import
   HandCoins
 } from 'lucide-react';
 
 const AdminLoanManagement: React.FC = () => {
+  const { showToast } = useToast();
   const [loans, setLoans] = useState<LoanApplication[]>(MOCK_LOANS);
+
+  const handleLoanAction = (id: string, action: 'approve' | 'reject') => {
+    showToast(`Processing ${action}...`, "loading");
+    setTimeout(() => {
+      setLoans(prev => prev.map(l => l.id === id ? { ...l, status: action === 'approve' ? LoanStatus.APPROVED : LoanStatus.REJECTED } : l));
+      showToast(`Loan application #${id.toUpperCase()} ${action}d`, action === 'approve' ? 'success' : 'info');
+    }, 1000);
+  };
 
   const LoanStatusBadge = ({ status }: { status: LoanStatus }) => {
     const styles = {
@@ -120,7 +129,7 @@ const AdminLoanManagement: React.FC = () => {
                                <div className="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0"><FileText size={18}/></div>
                                <div>
                                   <p className="text-sm font-black text-slate-900 leading-tight">{loan.userName}</p>
-                                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">#{loan.id.toUpperCase()} • {loan.purpose}</p>
+                                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">#{loan.id.toUpperCase()} • {loan.purpose}</p>
                                </div>
                             </div>
                          </td>
@@ -142,8 +151,20 @@ const AdminLoanManagement: React.FC = () => {
                             <div className="flex items-center justify-end gap-1">
                                {loan.status === LoanStatus.PENDING && (
                                  <>
-                                   <button className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all" title="Review & Approve"><UserCheck size={18}/></button>
-                                   <button className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-all" title="Reject Application"><UserX size={18}/></button>
+                                   <button 
+                                     onClick={() => handleLoanAction(loan.id, 'approve')}
+                                     className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all" 
+                                     title="Review & Approve"
+                                   >
+                                     <UserCheck size={18}/>
+                                   </button>
+                                   <button 
+                                     onClick={() => handleLoanAction(loan.id, 'reject')}
+                                     className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-all" 
+                                     title="Reject Application"
+                                   >
+                                     <UserX size={18}/>
+                                   </button>
                                  </>
                                )}
                                <button className="p-2 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"><Eye size={18}/></button>

@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { User, ShieldCheck, Mail, Phone, Building2, IdCard, ChevronLeft, Send, CheckCircle2, Wallet } from 'lucide-react';
+import { useToast } from './Toast';
 
 interface MembershipFormProps {
   onBack: () => void;
@@ -8,6 +9,7 @@ interface MembershipFormProps {
 }
 
 const MembershipForm: React.FC<MembershipFormProps> = ({ onBack, onSubmit }) => {
+  const { showToast } = useToast();
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
@@ -21,7 +23,9 @@ const MembershipForm: React.FC<MembershipFormProps> = ({ onBack, onSubmit }) => 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
+    showToast("Application transmitted to server...", "loading");
     setTimeout(() => {
+      showToast("Enrollment successful. Awaiting verification.", "success");
       onSubmit(formData);
     }, 2000);
   };

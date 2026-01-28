@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useToast } from './Toast';
 import { 
   Settings, 
   ShieldCheck, 
@@ -15,6 +16,18 @@ import {
 } from 'lucide-react';
 
 const SystemSettingsModule: React.FC = () => {
+  const { showToast } = useToast();
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = () => {
+    setSaving(true);
+    showToast("Committing changes to database...", "loading");
+    setTimeout(() => {
+      setSaving(false);
+      showToast("System policies updated successfully", "success");
+    }, 1500);
+  };
+
   return (
     <div className="space-y-8 pb-10">
       <div>
@@ -53,8 +66,12 @@ const SystemSettingsModule: React.FC = () => {
                   </div>
                </div>
                <div className="pt-4 flex justify-end">
-                  <button className="px-10 py-4 bg-indigo-600 text-white font-black rounded-2xl shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center gap-2">
-                     <Save size={18}/> Save Policy Changes
+                  <button 
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="px-10 py-4 bg-indigo-600 text-white font-black rounded-2xl shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center gap-2"
+                  >
+                     <Save size={18}/> {saving ? "Saving..." : "Save Policy Changes"}
                   </button>
                </div>
             </div>
@@ -71,14 +88,14 @@ const SystemSettingsModule: React.FC = () => {
                      <p className="text-sm font-black text-slate-900">Multi-Factor Authentication</p>
                      <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">Require 2FA for all administrative logins</p>
                   </div>
-                  <div className="w-12 h-6 bg-indigo-600 rounded-full p-1 flex justify-end"><div className="w-4 h-4 bg-white rounded-full"></div></div>
+                  <div className="w-12 h-6 bg-indigo-600 rounded-full p-1 flex justify-end cursor-pointer"><div className="w-4 h-4 bg-white rounded-full"></div></div>
                </div>
                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
                   <div>
                      <p className="text-sm font-black text-slate-900">Automatic Session Timeout</p>
                      <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">Logs out inactive users after 15 minutes</p>
                   </div>
-                  <div className="w-12 h-6 bg-indigo-600 rounded-full p-1 flex justify-end"><div className="w-4 h-4 bg-white rounded-full"></div></div>
+                  <div className="w-12 h-6 bg-indigo-600 rounded-full p-1 flex justify-end cursor-pointer"><div className="w-4 h-4 bg-white rounded-full"></div></div>
                </div>
             </div>
           </div>
