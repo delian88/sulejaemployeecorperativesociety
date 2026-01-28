@@ -1,0 +1,7 @@
+{
+  "name": "Suleja LGA Cooperative Management System",
+  "description": "A professional, government-standard financial management platform for the Suleja LGA Employee Multipurpose Cooperative Society, featuring automated loan processing, contribution tracking, and multi-level approval workflows.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
