@@ -32,6 +32,7 @@ export interface User {
   activeLoanBalance: number;
   membershipStatus: 'ACTIVE' | 'SUSPENDED' | 'INACTIVE';
   avatar?: string;
+  joinedDate?: string;
 }
 
 export interface MembershipApplication {
@@ -56,6 +57,7 @@ export interface Announcement {
 export interface Contribution {
   id: string;
   userId: string;
+  userName: string;
   month: string;
   year: number;
   amount: number;
@@ -82,8 +84,16 @@ export interface LoanApplication {
 
 export interface Activity {
   id: string;
-  type: 'CONTRIBUTION' | 'LOAN' | 'WITHDRAWAL' | 'SYSTEM';
+  type: 'CONTRIBUTION' | 'LOAN' | 'WITHDRAWAL' | 'SYSTEM' | 'MEMBER';
   description: string;
   timestamp: string;
   amount?: number;
+  user?: string;
+}
+
+export interface SystemSettings {
+  minMonthlyContribution: number;
+  loanInterestRate: number;
+  maxLoanTenure: number;
+  withdrawalRetentionPercentage: number;
 }
