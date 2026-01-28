@@ -24,7 +24,6 @@ import NotificationManager from './components/NotificationManager';
 import ApprovalWorkflowModule from './components/ApprovalWorkflowModule';
 import { User, UserRole } from './types';
 import { api } from './services/api';
-import { db } from './mockDb'; // Keep for initial demo bootstrap
 import { LogIn, Mail, Lock, Landmark, ChevronLeft, AlertCircle, Loader2 } from 'lucide-react';
 
 type ViewMode = 'landing' | 'apply' | 'login' | 'app' | 'about' | 'benefits';
@@ -43,9 +42,12 @@ const App: React.FC = () => {
   useEffect(() => {
     const checkSession = async () => {
       const savedEmail = localStorage.getItem('coop_session_email');
-      if (savedEmail) {
+      const token = localStorage.getItem('coop_auth_token');
+      
+      if (savedEmail && token) {
         // In production, we'd verify the token with api.getProfile()
-        const foundUser = db.getUserByEmail(savedEmail);
+        const members = await api.getMembers();
+        const foundUser = members.find(u => u.email === savedEmail);
         if (foundUser) {
           setUser(foundUser);
           setView('app');
@@ -62,22 +64,13 @@ const App: React.FC = () => {
     setLoginError(null);
 
     try {
-      // Simulating the API flow
-      // const response = await api.login({ email, password });
-      // setUser(response.user);
-      // api.setToken(response.token);
-      
-      const foundUser = db.getUserByEmail(email);
-      if (foundUser && (password === 'Admin@2024' || password === 'Member@2024')) {
-        setUser(foundUser);
-        setView('app');
-        localStorage.setItem('coop_session_email', foundUser.email);
-        // api.setToken('dummy-jwt-token');
-      } else {
-        setLoginError("Access Denied: Invalid credentials or unauthorized account.");
-      }
+      // Calling our abstracted API service
+      const response = await api.login({ email, password });
+      setUser(response.user);
+      localStorage.setItem('coop_session_email', response.user.email);
+      setView('app');
     } catch (err: any) {
-      setLoginError(err.message || "Connection failed. Please check your network.");
+      setLoginError(err.message || "Connection failed. Access denied.");
     } finally {
       setIsLoginLoading(false);
     }
@@ -97,10 +90,10 @@ const App: React.FC = () => {
 
   if (isInitializing) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-slate-900">
+      <div className="h-screen w-full flex items-center justify-center bg-[#0f172a]">
         <div className="text-center space-y-4">
           <Loader2 className="animate-spin text-indigo-500 mx-auto" size={48} />
-          <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Verifying Secure Session...</p>
+          <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Verifying Security Protocols...</p>
         </div>
       </div>
     );
@@ -116,7 +109,7 @@ const App: React.FC = () => {
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans text-slate-900">
         <div className="absolute top-0 left-0 w-full h-1/2 bg-indigo-700/5 -skew-y-6 -translate-y-1/2"></div>
         <button onClick={() => setView('landing')} className="absolute top-8 left-8 flex items-center gap-2 text-slate-500 font-bold hover:text-slate-900 z-20 transition-colors">
-          <ChevronLeft size={20} /> Back to Home
+          <ChevronLeft size={20} /> Back to Website
         </button>
 
         <div className="w-full max-w-md relative z-10">
@@ -124,8 +117,8 @@ const App: React.FC = () => {
             <div className="inline-flex items-center justify-center w-20 h-20 bg-indigo-700 rounded-2xl shadow-xl shadow-indigo-100 mb-6 transform hover:rotate-6 transition-transform">
                <Landmark size={40} className="text-white" />
             </div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Employee Access</h1>
-            <p className="text-slate-400 mt-2 font-bold uppercase text-[10px] tracking-widest leading-none">Suleja LGA Cooperative CMS</p>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Portal Entry</h1>
+            <p className="text-slate-400 mt-2 font-bold uppercase text-[10px] tracking-widest leading-none">Suleja LGA Cooperative Management System</p>
           </div>
 
           <div className="bg-white rounded-3xl shadow-2xl p-8 border border-slate-100">
@@ -137,7 +130,7 @@ const App: React.FC = () => {
               )}
               
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Portal ID / Email</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Work Email</label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
                   <input 
@@ -150,7 +143,7 @@ const App: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Security PIN</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Security PIN / Password</label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
                   <input 
@@ -167,16 +160,15 @@ const App: React.FC = () => {
                 disabled={isLoginLoading}
                 className="w-full py-4 bg-indigo-700 hover:bg-indigo-800 disabled:bg-indigo-300 text-white font-black rounded-xl shadow-xl shadow-indigo-200 transition-all flex items-center justify-center gap-2 text-base active:scale-95"
               >
-                {isLoginLoading ? <Loader2 className="animate-spin" size={20} /> : "Secure Access"} 
+                {isLoginLoading ? <Loader2 className="animate-spin" size={20} /> : "Validate & Access"} 
                 {!isLoginLoading && <LogIn size={20} />}
               </button>
             </form>
             
-            <div className="mt-8 p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center">
-              <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Demo Access</p>
+            <div className="mt-8 p-4 bg-amber-50 rounded-2xl border border-amber-100 text-center">
+              <p className="text-[10px] text-amber-600 font-bold uppercase mb-1">Production Access Required</p>
               <div className="flex flex-col gap-1">
-                <p className="text-[9px] text-indigo-600 font-bold">Admin: admin@sulejalga.gov.ng / Admin@2024</p>
-                <p className="text-[9px] text-indigo-600 font-bold">Member: member@sulejalga.gov.ng / Member@2024</p>
+                <p className="text-[9px] text-slate-500 font-medium italic">Use the specific Admin@2024 or Member@2024 PINs</p>
               </div>
             </div>
           </div>
